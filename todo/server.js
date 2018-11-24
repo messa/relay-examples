@@ -17,7 +17,7 @@ import webpack from 'webpack';
 import WebpackDevServer from 'webpack-dev-server';
 import {schema} from './data/schema';
 
-const APP_PORT = 3000;
+const APP_PORT = parseInt(process.env.PORT, 10) || 3000;
 
 // Serve the Relay app
 const compiler = webpack({
