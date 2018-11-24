@@ -48,6 +48,8 @@ const app = new WebpackDevServer(compiler, {
 // Serve static resources
 app.use('/', express.static(path.resolve(__dirname, 'public')));
 
+app.use('/graphql', require('cors')())
+
 // Setup GraphQL endpoint
 app.use(
   '/graphql',
