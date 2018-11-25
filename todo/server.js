@@ -12,9 +12,13 @@
 
 import express from 'express';
 import graphQLHTTP from 'express-graphql';
+import { graphiqlExpress } from 'apollo-server-express';
 import path from 'path';
 import webpack from 'webpack';
 import WebpackDevServer from 'webpack-dev-server';
+import { execute, subscribe } from 'graphql';
+import { createServer } from 'http';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
 import {schema} from './data/schema';
 
 const APP_PORT = parseInt(process.env.PORT, 10) || 3000;
@@ -39,11 +43,15 @@ const compiler = webpack({
     path: '/',
   },
 });
+
+/*
 const app = new WebpackDevServer(compiler, {
   contentBase: '/public/',
   publicPath: '/js/',
   stats: {colors: true},
 });
+*/
+const app = express()
 
 // Serve static resources
 app.use('/', express.static(path.resolve(__dirname, 'public')));
@@ -59,6 +67,22 @@ app.use(
   }),
 );
 
-app.listen(APP_PORT, () => {
-  console.log(`App is now running on http://localhost:${APP_PORT}`);
+app.use('/graphiql', graphiqlExpress({
+  endpointURL: '/graphql',
+  subscriptionsEndpoint: `ws://localhost:${APP_PORT}/subscriptions`
+}));
+
+const ws = createServer(app);
+
+ws.listen(APP_PORT, () => {
+  console.info(`App is now running on http://localhost:${APP_PORT}`);
+  new SubscriptionServer({
+    execute,
+    subscribe,
+    schema,
+    onConnect: () => console.log("Client connected!")
+  }, {
+    server: ws,
+    path: '/subscriptions',
+  });
 });

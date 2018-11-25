@@ -48,6 +48,16 @@ import {
   renameTodo,
 } from './database';
 
+import { PubSub, withFilter } from 'graphql-subscriptions';
+const pubsub = new PubSub();
+
+
+setInterval(() => {
+  console.info('ppublishing')
+  pubsub.publish('messageAdded', { whispers: { 'foo': 'bar', 'whyAreYouWhispering': 'test' } });
+}, 1000)
+
+
 const {nodeInterface, nodeField} = nodeDefinitions(
   globalId => {
     const {type, id} = fromGlobalId(globalId);
@@ -277,7 +287,29 @@ const Mutation = new GraphQLObjectType({
   },
 });
 
+// https://gist.github.com/jtmarmon/31682c4244d777d4fe68
+const whisperType = new GraphQLObjectType({
+  name: 'Whisper',
+  fields: () => ({
+    whyAreYouWhispering: {
+      type: GraphQLString
+    }
+  })
+})
+
+const Subscription = new GraphQLObjectType({
+  name: 'Subscription',
+  fields: {
+    whispers: {
+       type: whisperType,
+       //resolve: (a, b, c) => { console.log("IS RUNNING", a, b, c); },
+       subscribe: () => pubsub.asyncIterator('messageAdded')
+     },
+  }
+})
+
 export const schema = new GraphQLSchema({
   query: Query,
   mutation: Mutation,
+  subscription: Subscription,
 });
