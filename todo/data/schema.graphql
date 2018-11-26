@@ -64,6 +64,7 @@ type PageInfo {
 
 type Query {
   viewer: User
+  whisper: Whisper
 
   """Fetches an object given its ID"""
   node(
@@ -104,6 +105,10 @@ type RenameTodoPayload {
   clientMutationId: String
 }
 
+type Subscription {
+  whisper: Whisper
+}
+
 type Todo implements Node {
   """The ID of an object"""
   id: ID!
@@ -135,4 +140,8 @@ type User implements Node {
   todos(status: String = "any", after: String, first: Int, before: String, last: Int): TodoConnection
   totalCount: Int
   completedCount: Int
+}
+
+type Whisper {
+  whyAreYouWhispering: String
 }

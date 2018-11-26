@@ -54,7 +54,7 @@ const pubsub = new PubSub();
 
 setInterval(() => {
   console.info('ppublishing')
-  pubsub.publish('messageAdded', { whispers: { 'foo': 'bar', 'whyAreYouWhispering': 'test' } });
+  pubsub.publish('messageAdded', { whisper: { 'foo': 'bar', 'whyAreYouWhispering': `test ${new Date()}` } });
 }, 1000)
 
 
@@ -130,12 +130,26 @@ const GraphQLUser = new GraphQLObjectType({
   interfaces: [nodeInterface],
 });
 
+// https://gist.github.com/jtmarmon/31682c4244d777d4fe68
+const whisperType = new GraphQLObjectType({
+  name: 'Whisper',
+  fields: () => ({
+    whyAreYouWhispering: {
+      type: GraphQLString,
+    }
+  })
+})
+
 const Query = new GraphQLObjectType({
   name: 'Query',
   fields: {
     viewer: {
       type: GraphQLUser,
       resolve: () => getViewer(),
+    },
+    whisper: {
+      type: whisperType,
+      resolve: () => ({ whyAreYouWhispering: "foobar" }),
     },
     node: nodeField,
   },
@@ -287,24 +301,14 @@ const Mutation = new GraphQLObjectType({
   },
 });
 
-// https://gist.github.com/jtmarmon/31682c4244d777d4fe68
-const whisperType = new GraphQLObjectType({
-  name: 'Whisper',
-  fields: () => ({
-    whyAreYouWhispering: {
-      type: GraphQLString
-    }
-  })
-})
-
 const Subscription = new GraphQLObjectType({
   name: 'Subscription',
   fields: {
-    whispers: {
-       type: whisperType,
-       //resolve: (a, b, c) => { console.log("IS RUNNING", a, b, c); },
-       subscribe: () => pubsub.asyncIterator('messageAdded')
-     },
+    whisper: {
+      type: whisperType,
+      //resolve: (a, b, c) => { console.log("IS RUNNING", a, b, c); },
+      subscribe: () => pubsub.asyncIterator('messageAdded')
+    },
   }
 })
 
